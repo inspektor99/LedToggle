@@ -114,7 +114,8 @@
                 
                 var toggleAjax = function(led, callback){
                     $.mobile.loading('show');
-                        
+                    
+                    //RPi network location
                     var url = 'http://192.168.2.42:8080';
                     if (led) {
                         url += '?led=' + led;
