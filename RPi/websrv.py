@@ -8,10 +8,8 @@ import pika
 GPIO.setmode(GPIO.BOARD)
 
 LED1 = 11
-LED2 = 15
 
-GPIO.setup(LED1, GPIO.OUT)
-GPIO.setup(LED2, GPIO.OUT)
+GPIO.setup(LED1, GPIO.OUT, initial=GPIO.LOW)
 
 # Use plain credentials for authentication
 mq_creds  = pika.PlainCredentials(
@@ -34,7 +32,11 @@ mq_conn = pika.BlockingConnection(mq_params)
 # This is one channel inside the connection
 mq_chan = mq_conn.channel()
 
-class HelloResource(resource.Resource):
+initresp = {"data": "init", "led": "off"}
+initresp = json.dumps(initresp);
+mq_chan.basic_publish(exchange = mq_exchange, routing_key = mq_routing_key, body = initresp)
+
+class ServerResource(resource.Resource):
     isLeaf = True
     toggleLed = "off"
     numberRequests = 0
@@ -42,10 +44,10 @@ class HelloResource(resource.Resource):
 
     def render_GET(self, request):
         self.numberRequests += 1
-        callback = request.args['callback'][0]
+        callback = request.args["callback"][0]
 
         if 'led' in request.args:
-            self.toggleLed = request.args['led'][0]
+            self.toggleLed = request.args["led"][0]
 
         if self.toggleLed == "on":
             GPIO.output(LED1, True)
@@ -59,6 +61,6 @@ class HelloResource(resource.Resource):
         mq_chan.basic_publish(exchange = mq_exchange, routing_key = mq_routing_key, body = resp)			
         return callback + "(" + resp + ");"
 
-reactor.listenTCP(8080, server.Site(HelloResource()))
+reactor.listenTCP(8080, server.Site(ServerResource()))
 reactor.run()
 
