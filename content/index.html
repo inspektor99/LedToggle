@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>LED Toggle</title>
+        <meta name="viewport" content="initial-scale=1.0,maximum-scale=1.0,height=device-height,width=device-width,user-scalable = no">
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black" />
+        <link rel="stylesheet" href="libs/jquery/mobile/jquerymobiledeftheme.css">
+
+        <script src="libs/jquery/jquery.js"></script>
+        <script src="http://cdn.sockjs.org/sockjs-0.3.min.js"></script>
+        <script src="libs/stomp.js"></script>
+        <script src="libs/jquery/mobile/jquerymobile.js"></script>
+        <script src="libs/underscore.js"></script>
+        <script src="libs/backbone.js"></script>
+
+        <script>
+            if ( ! window.console ) console = { log: function(){} };
+        </script>
+        <style>
+            #raspi-resp{
+                background-repeat: no-repeat;
+                background-size: 100px 100px;
+                height: 100px;
+                margin-top: 5px;
+            }
+            .led-on {
+                background-image: url(images/redledon.png);
+            }
+            .led-off {
+                background-image: url(images/redledoff.png);
+            }
+            .led-error {
+                background-image: url(images/warning.png);
+            }
+            #stomp
+        </style>
+    </head>
+    <body>   
+        <div id="main-page" data-role="page">
+            <div data-role="content">
+                <select id="toggle-led" data-role="slider">
+                    <option value="off">Off</option>
+                    <option value="on">On</option>
+                </select> 
+                <div id="raspi-resp" class="led-off">
+
+                </div>
+            </div>
+
+            <script>
+                $('#main-page').on('pageshow', function() {
+                    // Stomp.js boilerplate
+                    Stomp.WebSocketClass = SockJS;
+
+                    var client = Stomp.client('http://' + window.location.hostname + ':15674/stomp');
+
+                    client.debug = function(m, p) {
+                        p = (p === undefined) ? '' : JSON.stringify(p);
+                        //console.log(m + ' ' + p);
+                    };
+                
+                    var on_connect = function() {
+                        console.log(client);
+                        //client.send("/queue/hello", {}, "Hello, STOMP");
+                        //var headers = {no_ack: 'true'};
+                        client.subscribe('/topic/toggleled', function(msgrcv) {
+                            //print_first(d.body);
+                            //console.log('message received: ' + msgrcv.body); 
+                            var ledmsg = JSON.parse(msgrcv.body);
+                        
+                            $('#raspi-resp').removeClass('led-on led-off led-error').addClass('led-' + ledmsg.led);
+                            var sliderLed = $('#toggle-led').val();
+                             
+                            if (sliderLed !== ledmsg.led) {
+                                $('#toggle-led').val(ledmsg.led);
+                                $('#toggle-led').slider('refresh');
+                            }
+
+                        });
+                        
+                        toggleAjax();
+                    };
+                    var on_error =  function(x) {
+                        console.log(x);
+                    };
+                    client.connect('guest', 'guest', on_connect, on_error, '/');
+                    
+                });
+                $('#main-page').on('pageinit', function(){
+                    
+                    
+                    $('#toggle-led').on('change', function(e) {
+                        var led = $(this).val();
+                        toggleAjax(led);
+
+                        return false;
+                    });
+                    
+                    $('#raspi-resp').on('click', function(e) {
+                        var led = $('#toggle-led').val();
+                        if (led === 'on') {
+                            led = 'off';
+                        }
+                        else {
+                            led = 'on';
+                        }
+                        
+                        toggleAjax(led);
+
+                        return false;
+                    });
+                });
+                
+                var toggleAjax = function(led, callback){
+                    $.mobile.loading('show');
+                        
+                    var url = 'http://192.168.2.42:8080';
+                    if (led) {
+                        url += '?led=' + led;
+                    }
+                        
+                    //JSONP doesn't support timeouts.
+                    var jsonpTimeout=window.setTimeout(function(){
+                        $('#raspi-resp').removeClass('led-on led-off').addClass('led-error');
+                        $.mobile.loading('hide');
+                    },2000);
+                    $.ajax({
+                        url: url,
+                        crossDomain: true,
+                        dataType: 'jsonp',
+                        cache: false,
+                        success: function(resp) {
+                            //got response so clear timeout
+                            clearTimeout(jsonpTimeout);
+                            console.log('ajax done: ' + resp.data);
+                        },
+                        error: function() {
+                            console.log('ajax fail');
+                            $('#raspi-resp').removeClass('led-on led-off').addClass('led-error');
+                        },
+                        complete: function() {
+                            $.mobile.loading('hide');
+                        }
+                    });  
+                };
+
+                
+
+            </script>
+        </div>
+    </body>
+</html>
