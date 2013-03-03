@@ -4,7 +4,7 @@ import RPi.GPIO as GPIO
 import json
 import pika
 
-# Use physical pin numbers
+# Use physical pin numbers.
 GPIO.setmode(GPIO.BOARD)
 
 LED1 = 11
