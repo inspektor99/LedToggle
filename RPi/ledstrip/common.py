@@ -29,7 +29,6 @@ class LedPixel:
 				self.leds[i * 3 + 1] = 0xFF
 			else:
 				self.leds[i * 3 + 2] = 0xFF
-			self.spidev.write(self.leds)
-			self.spidev.flush() 
+			self.writeAll()
 			time.sleep(.1)
 
