@@ -5,21 +5,10 @@ leds = common.LedPixel(32)
 leds.allOff()
 
 def pulse():
-   for dir in range(2):
-      for r in range(128):
-         color = abs(128 * dir - r)
-         leds.allColor(color, color, color)
-         time.sleep(.001)
+   colorfade(-1, -1, -1, False)
+   colorfade(-1, -1, -1, True)
 
-def colortest(isr, isg, isb): 
-   for color in range(256):
-      red = isr * color
-      green = isg * color
-      blue = isb * color
-      leds.allColor(red, green, blue)
-      time.sleep(.001)
-
-def togglecolor(r, g, b, isback):
+def colorfade(r, g, b, isback):
    red = r * 255
    green = g * 255
    blue = b * 255
@@ -38,14 +27,19 @@ def togglecolor(r, g, b, isback):
 
 def allcolors():
    leds.allOff()
-   togglecolor(-1, 0, 0, False)
-   togglecolor(1, -1, 0, False)
-   togglecolor(-1, 1, 0, True)
-   togglecolor(0, 1, -1, False)
-   togglecolor(0, -1, 1, True)
-   togglecolor(-1, 0, 1, False)
-   togglecolor(1, -1, 1, False)
-   togglecolor(-1, -1, -1, True)
-   
+   colorfade(-1, 0, 0, False)
+   colorfade(1, -1, 0, False)
+   colorfade(-1, 1, 0, True)
+   colorfade(0, 1, -1, False)
+   colorfade(0, -1, 1, True)
+   colorfade(-1, 0, 1, False)
+   colorfade(1, -1, 1, False)
+   colorfade(-1, -1, -1, True)
+#official WSU crimson
+#leds.allColor(152, 30, 50)
+#official WSU grey
+#leds.allColor(94, 106, 113)  
 while True:
-   allcolors()
+   #allcolors()
+   leds.goCougs()
+   #pulse()
