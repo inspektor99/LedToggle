@@ -30,11 +30,11 @@ class LedPixel:
    def goCougs(self):
       self.allOff()
       for i in range(self.NUM_LEDS - 1):
-         if i % 4 == 0:
+         if i % 8 == 0:
             #self.colorLed(i, 0, 255, 0)
-            self.colorLed(i, 94, 106, 113)
+            self.colorLed(i, 255, 255, 255)
          else:
-            self.colorLed(i, 152, 30, 50)
+            self.colorLed(i, 255, 0, 2)
             #self.colorLed(i, 0, 0, 255)
          self.writeAll()
          time.sleep(.1)
